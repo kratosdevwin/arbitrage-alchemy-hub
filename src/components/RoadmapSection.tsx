@@ -85,7 +85,7 @@ const phases = [
     title: "Token & DAO",
     status: "upcoming" as const,
     items: [
-      "ARBX utility token launch",
+      "TPAY utility token launch",
       "Governance DAO for platform decisions",
       "Staking rewards for token holders",
       "Revenue sharing program",

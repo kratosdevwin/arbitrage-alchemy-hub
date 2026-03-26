@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Menu, X, Zap } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import logo from "@/assets/logo-timepays.png";
 
 const navLinks = [
   { label: "About", href: "#about" },
@@ -20,10 +21,10 @@ const Navbar = () => {
       transition={{ duration: 0.6 }}
       className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30"
     >
-      <div className="container mx-auto flex items-center justify-between py-4 px-6">
-        <a href="#" className="flex items-center gap-2 font-display text-xl font-bold">
-          <Zap className="text-primary" size={28} />
-          <span className="gradient-text">ArbitrageX</span>
+      <div className="container mx-auto flex items-center justify-between py-3 px-6">
+        <a href="#" className="flex items-center gap-3">
+          <img src={logo} alt="Time Pays" className="h-10 w-auto" />
+          <span className="gradient-text font-display text-xl font-bold">Time Pays</span>
         </a>
 
         <div className="hidden md:flex items-center gap-8">

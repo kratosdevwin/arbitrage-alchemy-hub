@@ -26,7 +26,7 @@ const HeroSection = () => {
               Across Exchanges
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl max-w-lg mb-8 leading-relaxed">
-              Automated crypto arbitrage platform that detects and executes profitable trades across 50+ exchanges in milliseconds.
+              Time Pays is the automated crypto arbitrage platform that detects and executes profitable trades across 50+ exchanges in milliseconds.
             </p>
 
             <div className="flex flex-wrap gap-4 mb-12">
@@ -69,7 +69,7 @@ const HeroSection = () => {
               <div className="absolute inset-0 rounded-full blur-3xl opacity-20 gradient-primary" />
               <img
                 src={mascot}
-                alt="ArbitrageX Mascot"
+                alt="Time Pays Mascot"
                 width={450}
                 height={450}
                 className="relative z-10 animate-float drop-shadow-2xl"
