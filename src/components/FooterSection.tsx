@@ -1,4 +1,5 @@
-import { Zap, Github, Twitter, MessageCircle } from "lucide-react";
+import { Clock, Github, Twitter, MessageCircle } from "lucide-react";
+import logo from "@/assets/logo-timepays.png";
 
 const FooterSection = () => {
   return (
@@ -6,9 +7,9 @@ const FooterSection = () => {
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-10 mb-12">
           <div>
-            <a href="#" className="flex items-center gap-2 font-display text-xl font-bold mb-4">
-              <Zap className="text-primary" size={24} />
-              <span className="gradient-text">ArbitrageX</span>
+            <a href="#" className="flex items-center gap-3 mb-4">
+              <img src={logo} alt="Time Pays" className="h-8 w-auto" />
+              <span className="gradient-text font-display text-xl font-bold">Time Pays</span>
             </a>
             <p className="text-sm text-muted-foreground leading-relaxed">
               The most advanced crypto arbitrage platform. Automated, secure, and profitable.
@@ -43,7 +44,7 @@ const FooterSection = () => {
         </div>
 
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">© 2026 ArbitrageX. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2026 Time Pays. All rights reserved.</p>
           <div className="flex gap-4">
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Twitter size={18} /></a>
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Github size={18} /></a>
