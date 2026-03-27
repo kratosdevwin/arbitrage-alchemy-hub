@@ -39,12 +39,21 @@ const Navbar = () => {
               {link.label}
             </a>
           ))}
-          <a
-            href="#simulation"
-            className="gradient-primary px-5 py-2 rounded-lg text-sm font-bold text-primary-foreground hover-neon"
-          >
-            Try Simulator
-          </a>
+          {user ? (
+            <a
+              href="/dashboard"
+              className="gradient-primary px-5 py-2 rounded-lg text-sm font-bold text-primary-foreground hover-neon flex items-center gap-2"
+            >
+              <LayoutDashboard size={16} /> Dashboard
+            </a>
+          ) : (
+            <a
+              href="/auth"
+              className="gradient-primary px-5 py-2 rounded-lg text-sm font-bold text-primary-foreground hover-neon flex items-center gap-2"
+            >
+              <LogIn size={16} /> Login
+            </a>
+          )}
         </div>
 
         <button className="md:hidden text-foreground" onClick={() => setOpen(!open)}>
