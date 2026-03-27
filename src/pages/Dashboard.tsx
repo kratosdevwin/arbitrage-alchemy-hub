@@ -130,6 +130,9 @@ const Dashboard = () => {
             <span className="gradient-text font-display text-lg font-bold">Time Pays</span>
           </a>
           <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/investments")}>
+              <DollarSign size={16} /> Investimentos
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/referrals")}>
               <Users size={16} /> Referrals
             </Button>

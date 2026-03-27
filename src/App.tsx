@@ -18,6 +18,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/referrals" element={<Referrals />} />
+          <Route path="/investments" element={<Investments />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
