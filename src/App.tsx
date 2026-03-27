@@ -5,6 +5,7 @@ import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Referrals from "./pages/Referrals.tsx";
+import Investments from "./pages/Investments.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const App = () => (
