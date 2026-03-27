@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import ReferralTree from "@/components/ReferralTree";
 import {
-  Users, Copy, Home, Award, Share2, ChevronRight, LayoutDashboard
+  Users, Copy, Home, Award, Share2, LayoutDashboard, GitBranch
 } from "lucide-react";
 import logo from "@/assets/logo-timepays.png";
 
@@ -31,18 +32,8 @@ interface Referral {
   };
 }
 
-const LEVEL_COLORS = [
-  "bg-primary text-primary-foreground",
-  "bg-secondary text-secondary-foreground",
-  "bg-cyan-500 text-white",
-  "bg-purple-500 text-white",
-  "bg-pink-500 text-white",
-];
-
-const LEVEL_LABELS = ["Level 1 — 10%", "Level 2 — 5%", "Level 3 — 3%", "Level 4 — 2%", "Level 5 — 1%"];
-
 const Referrals = () => {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -103,11 +94,6 @@ const Referrals = () => {
     toast({ title: "Copied!", description: "Referral code copied to clipboard" });
   };
 
-  const referralsByLevel = [1, 2, 3, 4, 5].map((level) => ({
-    level,
-    referrals: referrals.filter((r) => r.level === level),
-  }));
-
   const totalReferrals = referrals.length;
   const directReferrals = referrals.filter((r) => r.level === 1).length;
 
@@ -143,10 +129,10 @@ const Referrals = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="mb-8">
             <h1 className="font-display text-3xl font-bold gradient-text">Referral Network</h1>
-            <p className="text-muted-foreground mt-1">Manage your referrals and grow your network</p>
+            <p className="text-muted-foreground mt-1">Your unilevel referral tree</p>
           </div>
 
-          {/* Stats */}
+          {/* Stats Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card className="glass border-border/30">
               <CardContent className="pt-6">
@@ -168,7 +154,7 @@ const Referrals = () => {
                     <Award size={24} className="text-secondary-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Direct Referrals</p>
+                    <p className="text-sm text-muted-foreground">Direct (Level 1)</p>
                     <p className="text-2xl font-display font-bold">{directReferrals}</p>
                   </div>
                 </div>
@@ -177,13 +163,13 @@ const Referrals = () => {
             <Card className="glass border-border/30">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                    <Share2 size={24} className="text-cyan-400" />
+                  <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center">
+                    <GitBranch size={24} className="text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Network Depth</p>
+                    <p className="text-sm text-muted-foreground">Active Levels</p>
                     <p className="text-2xl font-display font-bold">
-                      {referralsByLevel.filter((l) => l.referrals.length > 0).length} / 5
+                      {new Set(referrals.map((r) => r.level)).size} / 5
                     </p>
                   </div>
                 </div>
@@ -194,8 +180,8 @@ const Referrals = () => {
           {/* Referral Link */}
           <Card className="glass border-border/30 mb-8">
             <CardHeader>
-              <CardTitle className="font-display flex items-center gap-2">
-                <Share2 size={20} className="text-primary" /> Your Referral Link
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <Share2 size={18} className="text-primary" /> Your Referral Link
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -213,86 +199,24 @@ const Referrals = () => {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-3">
-                Your code: <span className="font-mono text-primary font-bold">{profile?.referral_code}</span>
+                Code: <span className="font-mono text-primary font-bold">{profile?.referral_code}</span>
               </p>
             </CardContent>
           </Card>
 
-          {/* Bonus Structure */}
-          <Card className="glass border-border/30 mb-8">
-            <CardHeader>
-              <CardTitle className="font-display flex items-center gap-2">
-                <Award size={20} className="text-secondary" /> Bonus Structure (5 Levels)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                {[
-                  { level: 1, pct: "10%", color: "from-primary to-primary/70" },
-                  { level: 2, pct: "5%", color: "from-secondary to-secondary/70" },
-                  { level: 3, pct: "3%", color: "from-cyan-500 to-cyan-500/70" },
-                  { level: 4, pct: "2%", color: "from-purple-500 to-purple-500/70" },
-                  { level: 5, pct: "1%", color: "from-pink-500 to-pink-500/70" },
-                ].map((item) => (
-                  <div key={item.level} className={`bg-gradient-to-br ${item.color} rounded-xl p-4 text-center`}>
-                    <p className="text-xs opacity-80">Level {item.level}</p>
-                    <p className="text-2xl font-display font-bold">{item.pct}</p>
-                    <p className="text-xs opacity-80">Bonus</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Referrals by Level */}
+          {/* Referral Tree */}
           <Card className="glass border-border/30">
             <CardHeader>
-              <CardTitle className="font-display flex items-center gap-2">
-                <Users size={20} className="text-primary" /> Your Referral Network
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <GitBranch size={18} className="text-primary" /> Referral Tree
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {totalReferrals === 0 ? (
-                <div className="text-center py-12">
-                  <Users size={48} className="text-muted-foreground mx-auto mb-4 opacity-30" />
-                  <p className="text-muted-foreground">No referrals yet</p>
-                  <p className="text-sm text-muted-foreground mt-1">Share your referral link to start building your network</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {referralsByLevel.map(({ level, referrals: levelRefs }) => (
-                    <div key={level}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge className={LEVEL_COLORS[level - 1]}>{LEVEL_LABELS[level - 1]}</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          ({levelRefs.length} {levelRefs.length === 1 ? "referral" : "referrals"})
-                        </span>
-                      </div>
-                      {levelRefs.length > 0 ? (
-                        <div className="space-y-2 ml-4">
-                          {levelRefs.map((ref) => (
-                            <div key={ref.id} className="flex items-center gap-3 bg-muted/30 rounded-lg px-4 py-3">
-                              <ChevronRight size={14} className="text-muted-foreground" />
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">{ref.referred_profile?.full_name || "User"}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {ref.referred_profile?.email || ref.referred_id.slice(0, 8) + "..."}
-                                </p>
-                              </div>
-                              <Badge variant="outline" className="text-xs">{ref.bonus_percentage}% bonus</Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(ref.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted-foreground ml-4">No referrals at this level</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <ReferralTree
+                referrals={referrals}
+                userName={profile?.full_name || profile?.email || "You"}
+                userEmail={profile?.email || ""}
+              />
             </CardContent>
           </Card>
         </motion.div>
