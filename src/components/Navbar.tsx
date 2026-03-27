@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo-timepays.png";
 
 const navLinks = [
@@ -13,6 +14,7 @@ const navLinks = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <motion.nav
@@ -37,12 +39,21 @@ const Navbar = () => {
               {link.label}
             </a>
           ))}
-          <a
-            href="#simulation"
-            className="gradient-primary px-5 py-2 rounded-lg text-sm font-bold text-primary-foreground hover-neon"
-          >
-            Try Simulator
-          </a>
+          {user ? (
+            <a
+              href="/dashboard"
+              className="gradient-primary px-5 py-2 rounded-lg text-sm font-bold text-primary-foreground hover-neon flex items-center gap-2"
+            >
+              <LayoutDashboard size={16} /> Dashboard
+            </a>
+          ) : (
+            <a
+              href="/auth"
+              className="gradient-primary px-5 py-2 rounded-lg text-sm font-bold text-primary-foreground hover-neon flex items-center gap-2"
+            >
+              <LogIn size={16} /> Login
+            </a>
+          )}
         </div>
 
         <button className="md:hidden text-foreground" onClick={() => setOpen(!open)}>
