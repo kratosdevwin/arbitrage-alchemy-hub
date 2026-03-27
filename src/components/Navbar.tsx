@@ -14,6 +14,7 @@ const navLinks = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <motion.nav
