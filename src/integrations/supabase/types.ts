@@ -14,13 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          referral_code: string
+          referred_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          referral_code?: string
+          referred_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          referral_code?: string
+          referred_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          bonus_percentage: number
+          created_at: string
+          id: string
+          level: number
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          bonus_percentage: number
+          created_at?: string
+          id?: string
+          level: number
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          bonus_percentage?: number
+          created_at?: string
+          id?: string
+          level?: number
+          referred_id?: string
+          referrer_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      process_referral: {
+        Args: { _new_user_id: string; _referral_code: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
