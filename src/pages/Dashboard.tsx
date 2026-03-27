@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Users, Copy, LogOut, Home, Gift, TrendingUp,
-  ChevronRight, Award, Share2
+  Users, LogOut, Home, TrendingUp, DollarSign,
+  Wallet, Network, ArrowUpRight, ArrowDownRight,
+  Clock, ChevronRight, Copy, Share2
 } from "lucide-react";
 import logo from "@/assets/logo-timepays.png";
 
@@ -20,34 +21,14 @@ interface Profile {
   referred_by: string | null;
 }
 
-interface Referral {
-  id: string;
-  referred_id: string;
-  level: number;
-  bonus_percentage: number;
-  created_at: string;
-  referred_profile?: {
-    full_name: string | null;
-    email: string | null;
-  };
-}
-
-const LEVEL_COLORS = [
-  "bg-primary text-primary-foreground",
-  "bg-secondary text-secondary-foreground",
-  "bg-cyan-500 text-white",
-  "bg-purple-500 text-white",
-  "bg-pink-500 text-white",
-];
-
-const LEVEL_LABELS = ["Level 1 — 10%", "Level 2 — 5%", "Level 3 — 3%", "Level 4 — 2%", "Level 5 — 1%"];
-
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [totalReferrals, setTotalReferrals] = useState(0);
+  const [directReferrals, setDirectReferrals] = useState(0);
+  const [networkDepth, setNetworkDepth] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,32 +45,24 @@ const Dashboard = () => {
 
     const [profileRes, referralsRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", user.id).single(),
-      supabase.from("referrals").select("*").eq("referrer_id", user.id).order("level", { ascending: true }),
+      supabase.from("referrals").select("*").eq("referrer_id", user.id),
     ]);
 
     if (profileRes.data) setProfile(profileRes.data);
 
     if (referralsRes.data) {
-      // Fetch referred profiles
-      const referredIds = referralsRes.data.map((r) => r.referred_id);
-      if (referredIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, email")
-          .in("user_id", referredIds);
-
-        const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
-        const enriched = referralsRes.data.map((r) => ({
-          ...r,
-          referred_profile: profileMap.get(r.referred_id) || undefined,
-        }));
-        setReferrals(enriched);
-      } else {
-        setReferrals([]);
-      }
+      setTotalReferrals(referralsRes.data.length);
+      setDirectReferrals(referralsRes.data.filter((r) => r.level === 1).length);
+      const levels = new Set(referralsRes.data.map((r) => r.level));
+      setNetworkDepth(levels.size);
     }
 
     setLoading(false);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
   };
 
   const copyReferralLink = () => {
@@ -99,24 +72,14 @@ const Dashboard = () => {
     toast({ title: "Copied!", description: "Referral link copied to clipboard" });
   };
 
-  const copyReferralCode = () => {
-    if (!profile) return;
-    navigator.clipboard.writeText(profile.referral_code);
-    toast({ title: "Copied!", description: "Referral code copied to clipboard" });
-  };
-
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/");
-  };
-
-  const referralsByLevel = [1, 2, 3, 4, 5].map((level) => ({
-    level,
-    referrals: referrals.filter((r) => r.level === level),
-  }));
-
-  const totalReferrals = referrals.length;
-  const directReferrals = referrals.filter((r) => r.level === 1).length;
+  // Mock data for transactions (would come from a real transactions table)
+  const recentTransactions = [
+    { id: 1, type: "bonus", description: "Level 1 Referral Bonus", amount: "+$12.50", time: "2 hours ago", positive: true },
+    { id: 2, type: "bonus", description: "Level 2 Network Bonus", amount: "+$3.25", time: "5 hours ago", positive: true },
+    { id: 3, type: "bonus", description: "Level 1 Referral Bonus", amount: "+$8.00", time: "1 day ago", positive: true },
+    { id: 4, type: "bonus", description: "Level 3 Network Bonus", amount: "+$1.80", time: "2 days ago", positive: true },
+    { id: 5, type: "bonus", description: "Level 1 Referral Bonus", amount: "+$15.00", time: "3 days ago", positive: true },
+  ];
 
   if (authLoading || loading) {
     return (
@@ -136,6 +99,9 @@ const Dashboard = () => {
             <span className="gradient-text font-display text-lg font-bold">Time Pays</span>
           </a>
           <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/referrals")}>
+              <Users size={16} /> Referrals
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
               <Home size={16} /> Home
             </Button>
@@ -153,173 +119,169 @@ const Dashboard = () => {
             <h1 className="font-display text-3xl font-bold gradient-text">
               Welcome, {profile?.full_name || profile?.email || "User"}
             </h1>
-            <p className="text-muted-foreground mt-1">
-              Manage your referrals and track your earnings
-            </p>
+            <p className="text-muted-foreground mt-1">Your earnings overview and activity</p>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="glass border-border/30">
+          {/* Earnings Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="glass border-border/30 overflow-hidden">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center">
-                    <Users size={24} className="text-primary-foreground" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center">
+                    <DollarSign size={20} className="text-primary-foreground" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Referrals</p>
-                    <p className="text-2xl font-display font-bold">{totalReferrals}</p>
-                  </div>
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border-0">
+                    <ArrowUpRight size={12} /> +12%
+                  </Badge>
                 </div>
+                <p className="text-sm text-muted-foreground">Today's Earnings</p>
+                <p className="text-2xl font-display font-bold mt-1">$40.55</p>
               </CardContent>
             </Card>
 
-            <Card className="glass border-border/30">
+            <Card className="glass border-border/30 overflow-hidden">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-secondary flex items-center justify-center">
-                    <Gift size={24} className="text-secondary-foreground" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center">
+                    <Wallet size={20} className="text-secondary-foreground" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Direct Referrals</p>
-                    <p className="text-2xl font-display font-bold">{directReferrals}</p>
-                  </div>
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border-0">
+                    <ArrowUpRight size={12} /> +8%
+                  </Badge>
                 </div>
+                <p className="text-sm text-muted-foreground">Current Balance</p>
+                <p className="text-2xl font-display font-bold mt-1">$1,250.80</p>
               </CardContent>
             </Card>
 
-            <Card className="glass border-border/30">
+            <Card className="glass border-border/30 overflow-hidden">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                    <TrendingUp size={24} className="text-cyan-400" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-10 w-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                    <Network size={20} className="text-cyan-400" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Network Depth</p>
-                    <p className="text-2xl font-display font-bold">
-                      {referralsByLevel.filter((l) => l.referrals.length > 0).length} / 5
-                    </p>
-                  </div>
+                  <span className="text-xs text-muted-foreground">{totalReferrals} members</span>
                 </div>
+                <p className="text-sm text-muted-foreground">Network Balance</p>
+                <p className="text-2xl font-display font-bold mt-1">$4,820.00</p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass border-border/30 overflow-hidden">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-10 w-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                    <TrendingUp size={20} className="text-purple-400" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">Depth {networkDepth}/5</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Total Earnings</p>
+                <p className="text-2xl font-display font-bold mt-1">$3,420.55</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Referral Link */}
-          <Card className="glass border-border/30 mb-8">
-            <CardHeader>
-              <CardTitle className="font-display flex items-center gap-2">
-                <Share2 size={20} className="text-primary" /> Your Referral Link
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1 bg-muted/50 rounded-lg px-4 py-3 font-mono text-sm text-foreground break-all">
+          {/* Quick Actions + Referral Link */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <Card className="glass border-border/30">
+              <CardHeader>
+                <CardTitle className="font-display text-lg flex items-center gap-2">
+                  <Share2 size={18} className="text-primary" /> Quick Share
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted/50 rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all mb-3">
                   {profile ? `${window.location.origin}/auth?ref=${profile.referral_code}` : "..."}
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={copyReferralLink} className="gradient-primary hover-neon">
-                    <Copy size={16} /> Copy Link
+                  <Button onClick={copyReferralLink} className="gradient-primary hover-neon flex-1" size="sm">
+                    <Copy size={14} /> Copy Link
                   </Button>
-                  <Button onClick={copyReferralCode} variant="outline">
-                    <Copy size={16} /> Code
+                  <Button onClick={() => navigate("/referrals")} variant="outline" size="sm" className="flex-1">
+                    <Users size={14} /> View Network
                   </Button>
                 </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-3">
-                Your code: <span className="font-mono text-primary font-bold">{profile?.referral_code}</span>
-                — Share it and earn up to 5 levels of bonuses!
-              </p>
-            </CardContent>
-          </Card>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Code: <span className="font-mono text-primary font-bold">{profile?.referral_code}</span>
+                </p>
+              </CardContent>
+            </Card>
 
-          {/* Bonus Structure */}
-          <Card className="glass border-border/30 mb-8">
+            {/* Network Summary */}
+            <Card className="glass border-border/30">
+              <CardHeader>
+                <CardTitle className="font-display text-lg flex items-center gap-2">
+                  <Users size={18} className="text-secondary" /> Network Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[
+                    { level: 1, pct: "10%", count: directReferrals, color: "bg-primary" },
+                    { level: 2, pct: "5%", count: 0, color: "bg-secondary" },
+                    { level: 3, pct: "3%", count: 0, color: "bg-cyan-500" },
+                    { level: 4, pct: "2%", count: 0, color: "bg-purple-500" },
+                    { level: 5, pct: "1%", count: 0, color: "bg-pink-500" },
+                  ].map((item) => (
+                    <div key={item.level} className="flex items-center gap-3">
+                      <div className={`h-2 w-2 rounded-full ${item.color}`} />
+                      <span className="text-sm text-muted-foreground flex-1">Level {item.level}</span>
+                      <Badge variant="outline" className="text-xs">{item.pct}</Badge>
+                      <span className="text-sm font-bold w-8 text-right">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  onClick={() => navigate("/referrals")}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full mt-4 text-primary"
+                >
+                  View Full Network <ChevronRight size={14} />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Transactions */}
+          <Card className="glass border-border/30">
             <CardHeader>
-              <CardTitle className="font-display flex items-center gap-2">
-                <Award size={20} className="text-secondary" /> Bonus Structure (5 Levels)
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <Clock size={18} className="text-primary" /> Recent Transactions
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                {[
-                  { level: 1, pct: "10%", color: "from-primary to-primary/70" },
-                  { level: 2, pct: "5%", color: "from-secondary to-secondary/70" },
-                  { level: 3, pct: "3%", color: "from-cyan-500 to-cyan-500/70" },
-                  { level: 4, pct: "2%", color: "from-purple-500 to-purple-500/70" },
-                  { level: 5, pct: "1%", color: "from-pink-500 to-pink-500/70" },
-                ].map((item) => (
+              <div className="space-y-3">
+                {recentTransactions.map((tx) => (
                   <div
-                    key={item.level}
-                    className={`bg-gradient-to-br ${item.color} rounded-xl p-4 text-center`}
+                    key={tx.id}
+                    className="flex items-center gap-4 bg-muted/30 rounded-lg px-4 py-3 hover:bg-muted/50 transition-colors"
                   >
-                    <p className="text-xs opacity-80">Level {item.level}</p>
-                    <p className="text-2xl font-display font-bold">{item.pct}</p>
-                    <p className="text-xs opacity-80">Bonus</p>
+                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
+                      tx.positive ? "bg-emerald-500/20" : "bg-red-500/20"
+                    }`}>
+                      {tx.positive ? (
+                        <ArrowUpRight size={16} className="text-emerald-400" />
+                      ) : (
+                        <ArrowDownRight size={16} className="text-red-400" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{tx.description}</p>
+                      <p className="text-xs text-muted-foreground">{tx.time}</p>
+                    </div>
+                    <span className={`text-sm font-bold ${
+                      tx.positive ? "text-emerald-400" : "text-red-400"
+                    }`}>
+                      {tx.amount}
+                    </span>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Referrals by Level */}
-          <Card className="glass border-border/30">
-            <CardHeader>
-              <CardTitle className="font-display flex items-center gap-2">
-                <Users size={20} className="text-primary" /> Your Referral Network
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {totalReferrals === 0 ? (
-                <div className="text-center py-12">
-                  <Users size={48} className="text-muted-foreground mx-auto mb-4 opacity-30" />
-                  <p className="text-muted-foreground">No referrals yet</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Share your referral link to start building your network
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {referralsByLevel.map(({ level, referrals: levelRefs }) => (
-                    <div key={level}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge className={LEVEL_COLORS[level - 1]}>
-                          {LEVEL_LABELS[level - 1]}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          ({levelRefs.length} {levelRefs.length === 1 ? "referral" : "referrals"})
-                        </span>
-                      </div>
-                      {levelRefs.length > 0 ? (
-                        <div className="space-y-2 ml-4">
-                          {levelRefs.map((ref) => (
-                            <div
-                              key={ref.id}
-                              className="flex items-center gap-3 bg-muted/30 rounded-lg px-4 py-3"
-                            >
-                              <ChevronRight size={14} className="text-muted-foreground" />
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">
-                                  {ref.referred_profile?.full_name || "User"}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {ref.referred_profile?.email || ref.referred_id.slice(0, 8) + "..."}
-                                </p>
-                              </div>
-                              <Badge variant="outline" className="text-xs">
-                                {ref.bonus_percentage}% bonus
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(ref.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted-foreground ml-4">No referrals at this level</p>
-                      )}
-                    </div>
-                  ))}
+              {recentTransactions.length === 0 && (
+                <div className="text-center py-8">
+                  <Clock size={40} className="text-muted-foreground mx-auto mb-3 opacity-30" />
+                  <p className="text-muted-foreground">No transactions yet</p>
                 </div>
               )}
             </CardContent>
