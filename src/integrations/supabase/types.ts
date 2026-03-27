@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      investment_packages: {
+        Row: {
+          bonus_per_level: Json
+          created_at: string
+          daily_return_pct: number
+          description: string | null
+          duration_days: number
+          id: string
+          is_active: boolean
+          name: string
+          points_reward: number
+          price: number
+        }
+        Insert: {
+          bonus_per_level?: Json
+          created_at?: string
+          daily_return_pct?: number
+          description?: string | null
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          points_reward?: number
+          price: number
+        }
+        Update: {
+          bonus_per_level?: Json
+          created_at?: string
+          daily_return_pct?: number
+          description?: string | null
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          points_reward?: number
+          price?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -74,6 +113,71 @@ export type Database = {
           level?: number
           referred_id?: string
           referrer_id?: string
+        }
+        Relationships: []
+      }
+      user_investments: {
+        Row: {
+          amount: number
+          expires_at: string | null
+          id: string
+          package_id: string
+          purchased_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          expires_at?: string | null
+          id?: string
+          package_id: string
+          purchased_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          expires_at?: string | null
+          id?: string
+          package_id?: string
+          purchased_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_investments_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "investment_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_points: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          source: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          source?: string
+          user_id?: string
         }
         Relationships: []
       }
